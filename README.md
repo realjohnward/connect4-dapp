@@ -1,6 +1,8 @@
 # connect4-dapp
 A connect4 dapp built with tkinter and web3. Currently supported on Rinkeby Ethereum testnet.
 
+![alt text](bin/img.png)
+
 Dependencies
 1) Python 3.6 or higher 
 
