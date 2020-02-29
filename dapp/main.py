@@ -2,22 +2,12 @@ import tkinter as tk
 from tkinter import ttk, simpledialog
 from web3.auto import w3
 from web3 import Web3, exceptions, gas_strategies, middleware, eth
-
 import json
-from os.path import expanduser, join
-from web3.middleware import geth_poa_middleware
-import subprocess
-import signal 
-import os 
-from multiprocessing import Process, Queue
-from datetime import datetime 
-import hashlib
-from bitcoin import ecdsa_sign
-import random 
+from web3.middleware import geth_poa_middleware 
 from datetime import datetime 
 from tkinter.filedialog import askopenfile 
 from time import time, sleep 
- 
+
 
 
 class Connect4Dapp(tk.Tk):
@@ -59,13 +49,6 @@ class Connect4Dapp(tk.Tk):
         self.load_game_sb = tk.Spinbox(self.ribbon, width=5, from_=0, to=0, command=lambda: self.load_game()) 
         self.load_game_sb.pack(side="left", padx=10) 
         
-        # load_bar_frame = tk.Frame(self.ribbon, bg="white") 
-        # load_bar_frame.pack(side="left", fill="both", expand=1, padx=20, pady=5)
-        # self.loading_bar_sections = []
-        # for i in range(10):
-        #     l = tk.Label(load_bar_frame, bg="white") 
-        #     l.pack(side="left", fill="both", expand=1)
-        #     self.loading_bar_sections.append(l)
 
         render_setup = self.load_web3(init=True)
 
@@ -168,11 +151,8 @@ class Connect4Dapp(tk.Tk):
 
         if render_setup:
             self.setup_app()
-        
-        self.progressbar_active = False 
-
+     
         self.protocol("WM_DELETE_WINDOW", lambda: self.save_config(destroy=True))
-        # self.canvas.create_rectangle(20, 25, 170, 100, fill="blue")
         self.after(1000, self.update_clock)
 
     def update_clock(self):
@@ -321,11 +301,9 @@ class Connect4Dapp(tk.Tk):
             file = askopenfile(mode='r') 
             if file is not None:
                 keystore = json.loads(file.read()) 
-                # privkey_file_label.config(text="Private Key File: " + str(keystore))
                 privkey_file_entry.config(state='normal')
                 privkey_file_entry.insert(0, keystore)
-                privkey_file_entry.config(state='disabled')
-                # entry.insert(0, content)        
+                privkey_file_entry.config(state='disabled')      
         
         def save_account(nickname=None, password=None, keystore=None):       
             print("nn: ", nickname, " ; psswd: ", password, "privkfc: ", keystore)
@@ -381,14 +359,7 @@ class Connect4Dapp(tk.Tk):
     def position_popup(self, popup, parent=None, dimensions="400x500"):
         x = self.winfo_x()
         y = self.winfo_y()
-        popup.wm_geometry(dimensions) 
-        #         
-        dx = 400
-        dy = 0
-        w = popup.winfo_width()
-        h = popup.winfo_height()  
-        # popup.geometry("+%d+%d" % (x + dx, y + dy))
-        # popup.attributes('-topmost', 'true')
+        popup.wm_geometry(dimensions)           
         if parent:
             popup.lift(parent)
         else:
@@ -406,7 +377,7 @@ class Connect4Dapp(tk.Tk):
             return True 
         provider = Web3.HTTPProvider(self.rinkeby_url)
         self.w3 = Web3(provider)
-        # self.w3.enable_unaudited_features()
+
         with open("abi.json") as f:
             abi = json.load(f)
         
@@ -418,8 +389,7 @@ class Connect4Dapp(tk.Tk):
         self.w3.middleware_onion.add(middleware.simple_cache_middleware)
 
         numGames = self.contract.functions.numGames().call()
-        print("numGames: ", numGames)
-        print("contract addr: ", self.contract.address)
+        # print("numGames: ", numGames)
         self.load_game_sb.config(to=numGames)
         return False  
 
@@ -430,14 +400,6 @@ class Connect4Dapp(tk.Tk):
             self.load_game()
         except Exception as e:
             print("refresh error: ", e)
-        # self.after(5000, self.refresh)
-
-
-    def on_canvas_enter(self, event):
-        print("enter")
-
-    def on_canvas_leave(self, enter):
-        print("leave")
 
     def fill_slots_white(self):
         all_items = list(self.canvas.find_all())
@@ -482,77 +444,6 @@ class Connect4Dapp(tk.Tk):
             self.configure(cursor='arrow')
             self.canvas.unbind("<Button-1>")
 
-    # def prompt_move_window(self, e):
-    #     def exit_window(e=None, manual=False):
-    #         if manual == True:
-    #             self.canvas.unbind("<Button-1>")       
-    #             # self.canvas.bind("<Enter>", self.on_canvas_enter)
-    #             # self.canvas.bind("<Leave>", self.on_canvas_leave)
-    #             self.canvas.bind("<Motion>", self.on_canvas_hover) 
-    #             self.move_btn.bind("<Button-1>", self.cancel_canvas_binds)
-    #             self.fill_slots_white()       
-        
-    #     def exit_window_and_cancel_canvas_binds(e=None):
-    #         popup.destroy()
-    #         self.cancel_canvas_binds()
-
-    #     popup = tk.Toplevel(self) 
-    #     self.position_popup(popup)       
-        
-    #     self.canvas.unbind("<Button-1>")
-    #     # self.canvas.unbind("<Enter>") 
-    #     # self.canvas.unbind("<Leave>")
-    #     self.canvas.unbind("<Motion>")
-
-    #     self.move_btn.unbind("<Button-1>")
-    #     self.move_btn.bind("<Button-1>", exit_window_and_cancel_canvas_binds)
-
-    #     popup.bind("<Destroy>", lambda e: exit_window(manual=True))
-
-    #     from_frame = tk.Frame(popup)
-    #     from_frame.pack(side="top", pady=10, padx=5, fill='x') 
-    #     from_label = tk.Label(from_frame, text=f"From: {self.address}")
-    #     from_label.pack(side="left")
-
-    #     slot_coordinate = None 
-    #     for label, slot in self.ovals.items():
-    #         if slot == self.target_slot:
-    #             slot_coordinate = label 
-        
-    #     column, row = slot_coordinate.split(",") 
-    #     column_frame = tk.Frame(popup)
-    #     column_frame.pack(side="top", pady=5, padx=5, fill='x') 
-    #     column_label = tk.Label(column_frame, text=f"Column: {column}")
-    #     column_label.pack(side="left") 
-    #     gi_frame = tk.Frame(popup)
-    #     gi_frame.pack(side="top", pady=5, padx=5, fill='x')
-    #     gi_label = tk.Label(gi_frame, text=f"Game Index: {self.current_game}")
-    #     gi_label.pack(side="left") 
-    #     password_frame = tk.Frame(popup)
-    #     password_frame.pack(side="top", pady=5, padx=5, fill='x')
-    #     p_label = tk.Label(password_frame, text="Password: ")
-    #     p_label.pack(side="left") 
-    #     p_entry = tk.Entry(password_frame, width=50) 
-    #     p_entry.pack(side="left", padx=5) 
-
-    #     gaslimit_frame = tk.Frame(popup) 
-    #     gaslimit_frame.pack(side="top", pady=5, padx=5, fill="x") 
-    #     gaslimit_label = tk.Label(gaslimit_frame, text="Gas Limit: ") 
-    #     gaslimit_label.pack(side="left") 
-    #     gaslimit_entry = tk.Entry(gaslimit_frame, width=50) 
-    #     gaslimit_entry.pack(side="left", padx=10)
-
-    #     btm_ribbon = tk.Frame(popup) 
-    #     btm_ribbon.pack(side="bottom", fill="x") 
-    #     submit_btn = ttk.Button(btm_ribbon, text="Submit") 
-    #     submit_btn.pack(side="right", padx=10) 
-    #     submit_btn.bind("<Button-1>", lambda e: self.commit_move(
-    #             column=column, gas_limit=gaslimit_entry.get(), password=p_entry.get(), popup=popup
-    #     ))
-    #     cancel_btn = ttk.Button(btm_ribbon, text="Cancel", command=lambda: popup.destroy()) 
-    #     cancel_btn.pack(side="right", padx=20) 
-
-
     def cancel_canvas_binds(self, e=None):
         self.configure(cursor='arrow')
         self.canvas.unbind("<Enter>") 
@@ -581,24 +472,6 @@ class Connect4Dapp(tk.Tk):
         self.new_game_btn.config(state='normal')
         if self.current_game:
             self.refresh_game("")
-            # data = self.game_data[str(self.current_game)] 
-            # player2 = data["player2"] 
-            # challenge_accepted = data["challenge_accepted"] 
-            # if player2 == addr and challenge_accepted == "0":
-            #     self.accept_challenge_btn.config(state='normal')
-            #     self.accept_challenge_btn.bind("<Button-1>", self.accept_challenge) 
-            # else:
-            #     print(f"player2 ({player2} ; t:{type(player2)}) == addr ({addr} ; t:{type(addr)})? {player2 == addr} ; ")
-            #     self.accept_challenge_btn.config(state='disabled')
-            #     self.accept_challenge_btn.unbind("<Button-1>")               
-
-            # players = [data["player1"], data["player2"]] 
-            # if players[int(data["whos_turn"]) - 1] == addr and data["challenge_accepted"] == "1":
-            #     self.move_btn.config(state='normal') 
-            #     self.move_btn.bind("<Button-1>", self.move)
-            # else:
-            #     self.move_btn.config(state='disabled')
-            #     self.move_btn.unbind("<Button-1>")
 
 
     def load_game(self):
@@ -771,7 +644,6 @@ class Connect4Dapp(tk.Tk):
                     "tie_game": 0, "winner": None, "p1_returns": 0, "p2_returns": 0}
         r1split = result1.split("|") 
         board_state_split = r1split[0].split(";") 
-        print("bss: ", board_state_split)
         for item in board_state_split:
             try:
                 values = item.split(":")
@@ -806,8 +678,6 @@ class Connect4Dapp(tk.Tk):
         label, value = p1_ante.split(":") 
         rdict["p2_ante"] = value
 
-        print("r1: ", rdict)
-
         result2 = self.contract.functions.getGameAbstract(int(game_index)).call()
 
         r2split = result2.split("|") 
@@ -841,13 +711,12 @@ class Connect4Dapp(tk.Tk):
         label, value = p2_returns.split(":") 
         rdict["p2_returns"] = value
         
-        print("r2: ", rdict)
+        # print("data: ", rdict)
 
         self.game_data[f"{game_index}"] = rdict
 
     
-    def new_game(self, e):
-        print("challenge opponent") 
+    def new_game(self, e): 
         popup = tk.Toplevel(self) 
         self.position_popup(popup)
 
@@ -855,8 +724,6 @@ class Connect4Dapp(tk.Tk):
         from_frame.pack(side="top", pady=20, padx=5, fill="x") 
         from_label = tk.Label(from_frame, text=f"From: {self.address}") 
         from_label.pack(side="left") 
-        # from_entry = tk.Entry(from_frame, width=50) 
-        # from_entry.pack(side="left", padx=10)
 
         opp_frame = tk.Frame(popup) 
         opp_frame.pack(side="top", pady=20, padx=5, fill="x") 
@@ -892,34 +759,6 @@ class Connect4Dapp(tk.Tk):
         mt2s_label.pack(side="left") 
         mt2s_entry = tk.Entry(mt2s_frame, width=50) 
         mt2s_entry.pack(side="left", padx=10)
-
-        # gaslimit_frame = tk.Frame(popup) 
-        # gaslimit_frame.pack(side="top", pady=20, padx=5, fill="x") 
-        # gaslimit_label = tk.Label(gaslimit_frame, text="Gas Limit: ") 
-        # gaslimit_label.pack(side="left") 
-        # gaslimit_entry = tk.Entry(gaslimit_frame, width=50) 
-        # gaslimit_entry.pack(side="left", padx=10)
-
-        # password_frame = tk.Frame(popup) 
-        # password_frame.pack(side="top", pady=20, padx=5, fill="x") 
-        # password_label = tk.Label(password_frame, text="Password: ") 
-        # password_label.pack(side="left") 
-        # password_entry = tk.Entry(password_frame, width=50) 
-        # password_entry.pack(side="left", padx=10)
-
-        # if self.address == PLAYER1_ADDR:
-        #     password_entry.insert(0, PLAYER1_PASSWORD)
-
-        # keystore_frame = tk.Frame(popup) 
-        # keystore_frame.pack(side="top", pady=20, padx=5, fill="x") 
-        # keystore_label = tk.Label(keystore_frame, text="Keystore: ") 
-        # keystore_label.pack(side="left") 
-        # keystore_entry = tk.Entry(keystore_frame, width=50) 
-        # keystore_entry.pack(side="left", padx=10)
-        # ks_browse_btn = ttk.Button(keystore_frame, text="Browse") 
-        # ks_browse_btn.pack(side="left", padx=5) 
-        # ks_browse_btn.bind("<Button-1>", lambda e: self.browse_for_keystore(keystore_entry))
-
 
         btm_ribbon = tk.Frame(popup) 
         btm_ribbon.pack(side="bottom", fill="x") 
@@ -982,8 +821,7 @@ class Connect4Dapp(tk.Tk):
         cancel_btn.pack(side="right", padx=20)     
     
     def challenge_opponent(self, **kwargs):
-        checksum_address = Web3.toChecksumAddress(self.address)
-        # self.w3.geth.personal.unlockAccount(checksum_address, kwargs['password'])       
+        checksum_address = Web3.toChecksumAddress(self.address)     
         opponent_address = Web3.toChecksumAddress(kwargs['opponent'])
         gas = self.contract.functions.challengeOpponent(opponent_address, int(kwargs['turn']), 
                                                                 int(kwargs['mt2ac']), int(kwargs['mt2s'])).estimateGas({'from': checksum_address})
@@ -996,9 +834,6 @@ class Connect4Dapp(tk.Tk):
         self.handle_transaction(checksum_address, gas, data, value=value, popup=kwargs['popup'])
 
     def move(self, e):
-        print("move")
-        # self.canvas.bind("<Enter>", self.on_canvas_enter)
-        # self.canvas.bind("<Leave>", self.on_canvas_leave)
         self.canvas.bind("<Motion>", self.on_canvas_hover)
         e.widget.config(text="Cancel") 
         e.widget.unbind("<Button-1>") 
@@ -1103,25 +938,26 @@ class Connect4Dapp(tk.Tk):
         
         column, row = slot_coordinate.split(",") 
 
-        checksum_address = Web3.toChecksumAddress(self.address)
-        # self.w3.geth.personal.unlockAccount(checksum_address, kwargs['password'])       
-        print("current_game: ", self.current_game)
-        # check for 4 in row 
+        checksum_address = Web3.toChecksumAddress(self.address)      
         
         check_for_win_or_tie = four_in_row_or_tie()
-        print("check for win/tie? ", check_for_win_or_tie)
-
-        gas = self.contract.functions.move(int(column), int(self.current_game), check_for_win_or_tie).estimateGas({'from': checksum_address})
+        # print("check for win/tie? ", check_for_win_or_tie)
+        try:
+            gas = self.contract.functions.move(int(column), int(self.current_game), check_for_win_or_tie).estimateGas({'from': checksum_address})
+        except:
+            if check_for_win_or_tie == True:
+                move_func = "moveCFW"
+            else:
+                move_func = "move"
+            gas = self.config['default_gas_values'][move_func]
 
         data = self.contract.encodeABI(fn_name="move", args=[int(column), int(self.current_game), check_for_win_or_tie])
 
-        #gasPrice = Web3.toHex(Web3.toWei('60', 'gwei'))
         self.handle_transaction(checksum_address, gas, data)
 
     def accept_challenge_submit(self, **kwargs):
         
-        checksum_address = Web3.toChecksumAddress(self.address)
-        # self.w3.geth.personal.unlockAccount(checksum_address, kwargs['password'])       
+        checksum_address = Web3.toChecksumAddress(self.address)     
 
         try:
             gas = self.contract.functions.acceptChallenge(kwargs['game_index']).estimateGas({'from': checksum_address})
@@ -1130,48 +966,43 @@ class Connect4Dapp(tk.Tk):
         
         data = self.contract.encodeABI(fn_name="acceptChallenge", args=[kwargs['game_index']])
 
-        #gasPrice = Web3.toHex(Web3.toWei('60', 'gwei'))
         value = Web3.toHex(int(kwargs['ante_amount']))
         self.handle_transaction(checksum_address, gas, data, value=value, popup=kwargs['popup'])
         
         
     def claim_win(self, e):
-        print("cw")
-        checksum_address = Web3.toChecksumAddress(self.address)
-        # self.w3.geth.personal.unlockAccount(checksum_address, kwargs['password'])       
+        checksum_address = Web3.toChecksumAddress(self.address)     
         
         gas = self.contract.functions.declareWinDueToOverstall(int(self.current_game)).estimateGas({'from': checksum_address})
 
         data = self.contract.encodeABI(fn_name="declareWinDueToOverstall", args=[int(self.current_game)])
 
-        #gasPrice = Web3.toHex(Web3.toWei('60', 'gwei'))
         self.handle_transaction(checksum_address, gas, data)
 
 
 
     def claim_refund(self, e):
-        print("cr")
-        checksum_address = Web3.toChecksumAddress(self.address)
-        # self.w3.geth.personal.unlockAccount(checksum_address, kwargs['password'])       
+        checksum_address = Web3.toChecksumAddress(self.address)      
         
-        gas = self.contract.functions.declareRefundDueToChallengeExpiration(int(self.current_game)).estimateGas({'from': checksum_address})
+        try:
+            gas = self.contract.functions.declareRefundDueToChallengeExpiration(int(self.current_game)).estimateGas({'from': checksum_address})
+        except:
+            gas = self.config['default_gas_values']['declareRefundDueToChallengeExpiration']
 
         data = self.contract.encodeABI(fn_name="declareRefundDueToChallengeExpiration", args=[int(self.current_game)])
 
-        #gasPrice = Web3.toHex(Web3.toWei('60', 'gwei'))
         self.handle_transaction(checksum_address, gas, data)
 
 
     def withdraw_pending_returns(self, e):
-        print("wpr")
-        checksum_address = Web3.toChecksumAddress(self.address)
-        # self.w3.geth.personal.unlockAccount(checksum_address, kwargs['password'])       
-        
-        gas = self.contract.functions.withdraw(int(self.current_game)).estimateGas({'from': checksum_address})
+        checksum_address = Web3.toChecksumAddress(self.address)     
+        try:
+            gas = self.contract.functions.withdraw(int(self.current_game)).estimateGas({'from': checksum_address})
+        except:
+            gas = self.config['default_gas_values']['withdraw']
 
         data = self.contract.encodeABI(fn_name="withdraw", args=[int(self.current_game)])
 
-        #gasPrice = Web3.toHex(Web3.toWei('60', 'gwei'))
         self.handle_transaction(checksum_address, gas, data)        
 
     def handle_transaction(self, checksum_address, gas, data, value=None, popup=None):
@@ -1196,39 +1027,17 @@ class Connect4Dapp(tk.Tk):
                 break 
 
         privkey = self.w3.eth.account.decrypt(privkey, password)
-        print("privkey: ", privkey)
         signed = w3.eth.account.signTransaction(tr, Web3.toHex(privkey))
         tx = self.w3.eth.sendRawTransaction(signed.rawTransaction)
-        print("tx_hash: ", tx)
+        # print("tx_hash: ", tx)
         if popup:
             popup.destroy()
 
-        # self.progressbar_active = True 
-        # self.after(10, lambda: self.run_progress_bar(0))
-
         tx_receipt = self.w3.eth.waitForTransactionReceipt(tx)
-        # self.progressbar_active = False 
-        print("tx_receipt: ", tx_receipt)
+        # print("tx_receipt: ", tx_receipt)
 
-        
-        # kwargs['popup'].destroy()
         self.render_receipt(tx_receipt)
 
-
-    def run_progress_bar(self, last_section_index):
-        if self.progressbar_active == True:
-            self.loading_bar_sections[last_section_index].config(bg="white")
-            try: 
-                last_section_index += 1
-                self.loading_bar_sections[last_section_index].config(bg="green")
-            except IndexError:
-                last_section_index = 0
-                self.loading_bar_sections[last_section_index].config(bg="green")
-            sleep(0.05)
-            self.after(10, lambda: self.run_progress_bar(last_section_index))
-        else:
-            for section in self.loading_bar_sections:
-                section.config(bg="white")
     
     def render_receipt(self, tx_receipt):
         def close_receipt_popup(e):
@@ -1248,9 +1057,6 @@ class Connect4Dapp(tk.Tk):
         ok_btn = ttk.Button(popup, text="Ok") 
         ok_btn.pack(side="bottom") 
         ok_btn.bind("<Button-1>", close_receipt_popup)
-
-
-
 
 
 if __name__ == '__main__':
